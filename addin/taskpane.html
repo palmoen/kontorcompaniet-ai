@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Svar</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+    }
+
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h3>AI E-postassistent</h3>
+
+  <button id="generate">Generer svar</button>
+
+  <textarea id="output" placeholder="Svar kommer her..."></textarea>
+
+  <button id="insert">Sett inn i e-post</button>
+
+  <script src="taskpane.js"></script>
+
+</body>
+</html>
