@@ -63,7 +63,7 @@
         <DesktopFormFactor>
           <FunctionFile resid="functionFile"/>
 
-          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+          <ExtensionPoint xsi:type="MessageComposeCommandSurface">
             <OfficeTab id="TabDefault">
               <Group id="aiGroup">
                 <Label resid="groupLabel"/>
