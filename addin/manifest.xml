@@ -12,6 +12,7 @@
   <DefaultLocale>nb-NO</DefaultLocale>
   <DisplayName DefaultValue="AI E-postassistent"/>
   <Description DefaultValue="Generer AI-svar i Outlook"/>
+
   <IconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
   <HighResolutionIconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
   <SupportUrl DefaultValue="https://kontorcompaniet.no"/>
