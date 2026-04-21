@@ -12,8 +12,8 @@
   <DefaultLocale>nb-NO</DefaultLocale>
   <DisplayName DefaultValue="AI E-postassistent"/>
   <Description DefaultValue="Generer AI-svar i Outlook"/>
-  <IconUrl DefaultValue="https://localhost:3000/icon.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/icon.png"/>
+  <IconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
+  <HighResolutionIconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
   <SupportUrl DefaultValue="https://kontorcompaniet.no"/>
 
   <Hosts>
@@ -25,14 +25,6 @@
       <Set Name="Mailbox" MinVersion="1.5"/>
     </Sets>
   </Requirements>
-
-  <FormSettings>
-    <Form xsi:type="ItemRead">
-      <DesktopSettings>
-        <SourceLocation DefaultValue="https://localhost:3000/addin/taskpane.html"/>
-      </DesktopSettings>
-    </Form>
-  </FormSettings>
 
   <Permissions>ReadWriteItem</Permissions>
 
@@ -73,13 +65,13 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16" DefaultValue="https://localhost:3000/icon.png"/>
-        <bt:Image id="icon32" DefaultValue="https://localhost:3000/icon.png"/>
-        <bt:Image id="icon80" DefaultValue="https://localhost:3000/icon.png"/>
+        <bt:Image id="icon16" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
+        <bt:Image id="icon32" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
+        <bt:Image id="icon80" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
       </bt:Images>
 
       <bt:Urls>
-        <bt:Url id="taskpaneUrl" DefaultValue="https://localhost:3000/addin/taskpane.html"/>
+        <bt:Url id="taskpaneUrl" DefaultValue="https://kontorcompaniet-ai.vercel.app/addin/taskpane.html"/>
       </bt:Urls>
 
       <bt:ShortStrings>
