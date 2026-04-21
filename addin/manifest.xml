@@ -7,13 +7,13 @@
   xsi:type="MailApp">
 
   <Id>e7b2c1a0-1234-4bcd-9a12-123456789abc</Id>
-  <Version>1.0.0.3</Version>
+  <Version>1.0.0.4</Version>
   <ProviderName>Kontorcompaniet</ProviderName>
   <DefaultLocale>nb-NO</DefaultLocale>
   <DisplayName DefaultValue="AI E-postassistent"/>
   <Description DefaultValue="Generer AI-svar i Outlook"/>
-  <IconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
-  <HighResolutionIconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
+  <IconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://kontorcompaniet-ai.vercel.app/icon-128.png"/>
   <SupportUrl DefaultValue="https://kontorcompaniet.no"/>
 
   <AppDomains>
@@ -35,7 +35,6 @@
     <Form xsi:type="ItemEdit">
       <DesktopSettings>
         <SourceLocation DefaultValue="https://kontorcompaniet-ai.vercel.app/addin/taskpane.html"/>
-        <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
   </FormSettings>
@@ -92,9 +91,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
-        <bt:Image id="icon32" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
-        <bt:Image id="icon80" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon.png"/>
+        <bt:Image id="icon16" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon-64.png"/>
+        <bt:Image id="icon32" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon-64.png"/>
+        <bt:Image id="icon80" DefaultValue="https://kontorcompaniet-ai.vercel.app/icon-128.png"/>
       </bt:Images>
 
       <bt:Urls>
