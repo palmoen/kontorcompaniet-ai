@@ -18,6 +18,9 @@
         --primary: #173b8f;
         --primary-2: #234db8;
         --primary-soft: #eef3ff;
+        --success-soft: #ecfdf3;
+        --success-border: #abefc6;
+        --success-text: #067647;
         --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
       }
 
@@ -217,6 +220,14 @@
         line-height: 1.55;
       }
 
+      .textarea.reply-large {
+        min-height: 280px;
+      }
+
+      .textarea.summary-large {
+        min-height: 230px;
+      }
+
       .textarea.small {
         min-height: 118px;
       }
@@ -259,6 +270,10 @@
         width: 15px;
         height: 15px;
         stroke: currentColor;
+      }
+
+      .toolbar-icon:hover {
+        color: var(--primary);
       }
 
       .grid-2 {
@@ -352,6 +367,19 @@
         justify-content: center;
         color: var(--primary);
         flex-shrink: 0;
+        cursor: pointer;
+      }
+
+      .voice-left.listening {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+
+      .voice-right.speaking {
+        background: var(--primary-soft);
+        border-color: #9db3ee;
+        color: var(--primary);
       }
 
       .voice-left svg,
@@ -367,6 +395,76 @@
         color: var(--primary);
         font-weight: 700;
         font-size: 14px;
+      }
+
+      .task-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .task-card {
+        border: 1px solid var(--success-border);
+        background: var(--success-soft);
+        border-radius: 10px;
+        padding: 10px;
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .task-card.show {
+        display: flex;
+      }
+
+      .task-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .task-card-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #11412f;
+        line-height: 1.4;
+      }
+
+      .task-card-meta {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--success-text);
+        white-space: nowrap;
+      }
+
+      .task-card-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .task-action-btn {
+        appearance: none;
+        border: 1px solid var(--success-border);
+        border-radius: 8px;
+        background: #fff;
+        color: #175c3f;
+        min-height: 34px;
+        padding: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .task-action-btn:hover {
+        background: #fafffc;
+      }
+
+      .helper-text {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
       }
     </style>
   </head>
@@ -435,6 +533,12 @@
 
               <div class="output-box">
                 <div class="output-toolbar">
+                  <button id="speakReplyBtnTop" class="toolbar-icon" type="button" aria-label="Les opp svar">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M5 9v6h4l5 4V5l-5 4H5Z" stroke-width="1.8" stroke-linejoin="round"/>
+                      <path d="M18 9.5a4.5 4.5 0 0 1 0 5" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                  </button>
                   <button class="toolbar-icon" type="button" aria-label="Tommel opp">
                     <svg viewBox="0 0 24 24" fill="none">
                       <path d="M7 11v9M11 10l2-6c.3-1 1.7-1 1.9.1L15 8h4.4c1.1 0 1.9 1 1.7 2.1l-1.2 7A2 2 0 0 1 18 19h-7V10Z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -457,7 +561,7 @@
 
                 <textarea
                   id="replyOutput"
-                  class="textarea"
+                  class="textarea reply-large"
                   placeholder="Generert svar vises her..."
                 ></textarea>
               </div>
@@ -482,21 +586,21 @@
             </div>
 
             <div class="footer-voice">
-              <div class="voice-left" aria-hidden="true">
+              <button id="voiceInputBtn" class="voice-left" type="button" aria-label="Trykk og snakk">
                 <svg viewBox="0 0 24 24" fill="none">
                   <path d="M12 4a3 3 0 0 1 3 3v5a3 3 0 1 1-6 0V7a3 3 0 0 1 3-3Z" stroke-width="1.8"/>
                   <path d="M19 11a7 7 0 0 1-14 0M12 18v3M9 21h6" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
-              </div>
+              </button>
 
-              <div class="voice-text">Trykk og snakk</div>
+              <div id="voiceStatusText" class="voice-text">Trykk og snakk</div>
 
-              <div class="voice-right" aria-hidden="true">
+              <button id="speakReplyBtn" class="voice-right" type="button" aria-label="Les opp svar">
                 <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 1 0 12 8.5Z" stroke-width="1.8"/>
-                  <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1 1 0 0 1 0 1.4l-1 1a1 1 0 0 1-1.4 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1 1 0 0 1-1 1h-1.4a1 1 0 0 1-1-1v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1 1 0 0 1-1.4 0l-1-1a1 1 0 0 1 0-1.4l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1 1 0 0 1-1-1v-1.4a1 1 0 0 1 1-1h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1 1 0 0 1 0-1.4l1-1a1 1 0 0 1 1.4 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a1 1 0 0 1 1-1h1.4a1 1 0 0 1 1 1v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a1 1 0 0 1 1.4 0l1 1a1 1 0 0 1 0 1.4l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a1 1 0 0 1 1 1v1.4a1 1 0 0 1-1 1h-.2a1 1 0 0 0-.9.6Z" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M5 9v6h4l5 4V5l-5 4H5Z" stroke-width="1.8" stroke-linejoin="round"/>
+                  <path d="M18 9.5a4.5 4.5 0 0 1 0 5" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
-              </div>
+              </button>
             </div>
           </section>
 
@@ -510,7 +614,11 @@
 
             <div class="card">
               <h3 class="section-title">Oppsummering</h3>
-              <textarea id="summaryOutput" class="textarea small" placeholder="Oppsummering vises her..."></textarea>
+              <textarea
+                id="summaryOutput"
+                class="textarea summary-large"
+                placeholder="Oppsummering vises her..."
+              ></textarea>
             </div>
 
             <div class="grid-2">
@@ -525,16 +633,61 @@
               <button id="generateTasksBtn" class="btn primary full" type="button">
                 Foreslå oppgaver
               </button>
+              <div class="helper-text">
+                Viser opptil 3 forslag. Kalender-/to-do-/reminder-knapper er klargjort.
+              </div>
+            </div>
+
+            <div id="taskCards" class="task-cards">
+              <div class="task-card" data-task-card="0">
+                <div class="task-card-top">
+                  <div id="taskCardTitle0" class="task-card-title"></div>
+                  <div class="task-card-meta">Forslag 1</div>
+                </div>
+                <div class="task-card-actions">
+                  <button class="task-action-btn" data-task-action="calendar" data-task-index="0" type="button">Kalender</button>
+                  <button class="task-action-btn" data-task-action="todo" data-task-index="0" type="button">To-do</button>
+                  <button class="task-action-btn" data-task-action="reminder" data-task-index="0" type="button">Reminder</button>
+                </div>
+              </div>
+
+              <div class="task-card" data-task-card="1">
+                <div class="task-card-top">
+                  <div id="taskCardTitle1" class="task-card-title"></div>
+                  <div class="task-card-meta">Forslag 2</div>
+                </div>
+                <div class="task-card-actions">
+                  <button class="task-action-btn" data-task-action="calendar" data-task-index="1" type="button">Kalender</button>
+                  <button class="task-action-btn" data-task-action="todo" data-task-index="1" type="button">To-do</button>
+                  <button class="task-action-btn" data-task-action="reminder" data-task-index="1" type="button">Reminder</button>
+                </div>
+              </div>
+
+              <div class="task-card" data-task-card="2">
+                <div class="task-card-top">
+                  <div id="taskCardTitle2" class="task-card-title"></div>
+                  <div class="task-card-meta">Forslag 3</div>
+                </div>
+                <div class="task-card-actions">
+                  <button class="task-action-btn" data-task-action="calendar" data-task-index="2" type="button">Kalender</button>
+                  <button class="task-action-btn" data-task-action="todo" data-task-index="2" type="button">To-do</button>
+                  <button class="task-action-btn" data-task-action="reminder" data-task-index="2" type="button">Reminder</button>
+                </div>
+              </div>
             </div>
 
             <div class="card">
               <h3 class="section-title">Forslag</h3>
-              <textarea id="tasksOutput" class="textarea small" placeholder="Oppgaver og oppfølging vises her..."></textarea>
+              <textarea
+                id="tasksOutput"
+                class="textarea summary-large"
+                placeholder="Oppgaver og oppfølging vises her..."
+              ></textarea>
             </div>
 
             <div class="grid-2">
               <button id="copyTasksBtn" class="btn" type="button">Kopier</button>
-              <button id="clearAllBtnTasksGhost" class="btn" type="button" onclick="document.getElementById('tasksOutput').value=''">Tøm visning</button>
+              <button id="clearTasksViewBtn" class="btn" type="button">Tøm visning</button>
             </div>
           </section>
 

@@ -9,6 +9,10 @@
     lastSummary: "",
     lastTasks: "",
     lastTools: "",
+    parsedTasks: [],
+    isListening: false,
+    isSpeaking: false,
+    recognition: null,
   };
 
   const els = {};
@@ -16,6 +20,8 @@
   Office.onReady(() => {
     bindElements();
     bindEvents();
+    initVoiceInput();
+    updateVoiceUi();
     setStatus("Klar", "loading");
     loadCurrentEmailContext()
       .then(() => {
@@ -48,6 +54,7 @@
     els.generateTasksBtn = document.getElementById("generateTasksBtn");
     els.tasksOutput = document.getElementById("tasksOutput");
     els.copyTasksBtn = document.getElementById("copyTasksBtn");
+    els.clearTasksViewBtn = document.getElementById("clearTasksViewBtn");
 
     els.generateNewEmailBtn = document.getElementById("generateNewEmailBtn");
     els.generateComplaintBtn = document.getElementById("generateComplaintBtn");
@@ -58,6 +65,19 @@
 
     els.refreshContextBtn = document.getElementById("refreshContextBtn");
     els.clearAllBtn = document.getElementById("clearAllBtn");
+
+    els.voiceInputBtn = document.getElementById("voiceInputBtn");
+    els.voiceStatusText = document.getElementById("voiceStatusText");
+    els.speakReplyBtn = document.getElementById("speakReplyBtn");
+    els.speakReplyBtnTop = document.getElementById("speakReplyBtnTop");
+
+    els.taskCards = Array.from(document.querySelectorAll("[data-task-card]"));
+    els.taskCardTitles = [
+      document.getElementById("taskCardTitle0"),
+      document.getElementById("taskCardTitle1"),
+      document.getElementById("taskCardTitle2"),
+    ];
+    els.taskActionBtns = Array.from(document.querySelectorAll("[data-task-action]"));
   }
 
   function bindEvents() {
@@ -108,6 +128,15 @@
       await copyText(els.tasksOutput.value || "");
     });
 
+    els.clearTasksViewBtn?.addEventListener("click", () => {
+      if (els.tasksOutput) {
+        els.tasksOutput.value = "";
+      }
+      resetTaskCards();
+      state.parsedTasks = [];
+      setStatus("Oppgavevisning tømt", "loading", 1400);
+    });
+
     els.generateNewEmailBtn?.addEventListener("click", async () => {
       switchTab("tools");
       await generateToolIntent("new_email");
@@ -135,6 +164,26 @@
     els.clearAllBtn?.addEventListener("click", () => {
       clearOutputs();
       setStatus("Felter tømt", "loading", 1400);
+    });
+
+    els.voiceInputBtn?.addEventListener("click", () => {
+      toggleVoiceInput();
+    });
+
+    els.speakReplyBtn?.addEventListener("click", () => {
+      toggleSpeakReply();
+    });
+
+    els.speakReplyBtnTop?.addEventListener("click", () => {
+      toggleSpeakReply();
+    });
+
+    els.taskActionBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const index = Number(btn.dataset.taskIndex);
+        const action = btn.dataset.taskAction || "";
+        handleTaskAction(index, action);
+      });
     });
   }
 
@@ -273,7 +322,7 @@
         tone: "standard",
         context: state.currentBodyText,
         instruction:
-          "Foreslå konkrete oppgaver, avtaler og oppfølging på norsk. Kort og oversiktlig.",
+          "Foreslå maksimalt 3 konkrete oppgaver eller oppfølginger på norsk. Bruk én linje per forslag. Ingen nummerering hvis mulig.",
       });
 
       const text = extractText(response);
@@ -281,6 +330,9 @@
       if (els.tasksOutput) {
         els.tasksOutput.value = text;
       }
+
+      state.parsedTasks = parseTasks(text);
+      renderTaskCards(state.parsedTasks);
 
       setStatus("Oppgaver klare", "loading", 1600);
     } catch (error) {
@@ -344,6 +396,202 @@
       setStatus("Kunne ikke fullføre verktøyet", "error", 2600);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function parseTasks(text) {
+    return String(text || "")
+      .split("\n")
+      .map((line) => line.trim())
+      .map((line) => line.replace(/^[-•*\d.]+\s*/, "").trim())
+      .filter(Boolean)
+      .slice(0, 3);
+  }
+
+  function renderTaskCards(tasks) {
+    resetTaskCards();
+
+    tasks.forEach((task, index) => {
+      const card = els.taskCards[index];
+      const title = els.taskCardTitles[index];
+      if (!card || !title) return;
+
+      title.textContent = task;
+      card.classList.add("show");
+    });
+  }
+
+  function resetTaskCards() {
+    els.taskCards.forEach((card) => {
+      card.classList.remove("show");
+    });
+
+    els.taskCardTitles.forEach((title) => {
+      if (title) {
+        title.textContent = "";
+      }
+    });
+  }
+
+  function handleTaskAction(index, action) {
+    const taskText = state.parsedTasks[index];
+    if (!taskText) {
+      setStatus("Ingen oppgave funnet", "error", 1800);
+      return;
+    }
+
+    const label =
+      action === "calendar"
+        ? "Kalender"
+        : action === "todo"
+          ? "To-do"
+          : "Reminder";
+
+    setStatus(`${label}-knapp klargjort for: ${taskText}`, "loading", 2200);
+  }
+
+  function initVoiceInput() {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      if (els.voiceStatusText) {
+        els.voiceStatusText.textContent = "Tale ikke støttet her";
+      }
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "no-NO";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      state.isListening = true;
+      updateVoiceUi();
+      setStatus("Lytter...", "loading");
+    };
+
+    recognition.onend = () => {
+      state.isListening = false;
+      updateVoiceUi();
+    };
+
+    recognition.onerror = () => {
+      state.isListening = false;
+      updateVoiceUi();
+      setStatus("Taleinntak feilet", "error", 2200);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results || [])
+        .map((result) => result[0]?.transcript || "")
+        .join(" ")
+        .trim();
+
+      if (!transcript) return;
+
+      if (state.activeTab === "tools" && els.toolPrompt) {
+        els.toolPrompt.value = appendSpokenText(els.toolPrompt.value, transcript);
+      } else if (els.replyOutput) {
+        els.replyOutput.value = appendSpokenText(els.replyOutput.value, transcript);
+      }
+
+      setStatus("Tale lagt inn", "loading", 1600);
+    };
+
+    state.recognition = recognition;
+  }
+
+  function toggleVoiceInput() {
+    if (!state.recognition) {
+      setStatus("Taleinntak støttes ikke i denne klienten", "error", 2400);
+      return;
+    }
+
+    if (state.isListening) {
+      state.recognition.stop();
+      return;
+    }
+
+    try {
+      state.recognition.start();
+    } catch (error) {
+      setStatus("Kunne ikke starte taleinntak", "error", 2200);
+    }
+  }
+
+  function appendSpokenText(existing, spoken) {
+    const base = String(existing || "").trim();
+    const addition = String(spoken || "").trim();
+    if (!base) return addition;
+    return `${base}\n${addition}`;
+  }
+
+  function toggleSpeakReply() {
+    const text = String(els.replyOutput?.value || "").trim();
+
+    if (!text) {
+      setStatus("Ingen tekst å lese opp", "error", 1800);
+      return;
+    }
+
+    if (!window.speechSynthesis) {
+      setStatus("Opplesning støttes ikke her", "error", 2200);
+      return;
+    }
+
+    if (state.isSpeaking) {
+      window.speechSynthesis.cancel();
+      state.isSpeaking = false;
+      updateVoiceUi();
+      setStatus("Opplesning stoppet", "loading", 1400);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "no-NO";
+    utterance.rate = 0.98;
+
+    utterance.onstart = () => {
+      state.isSpeaking = true;
+      updateVoiceUi();
+      setStatus("Leser opp svar...", "loading");
+    };
+
+    utterance.onend = () => {
+      state.isSpeaking = false;
+      updateVoiceUi();
+      setStatus("Opplesning ferdig", "loading", 1400);
+    };
+
+    utterance.onerror = () => {
+      state.isSpeaking = false;
+      updateVoiceUi();
+      setStatus("Opplesning feilet", "error", 2200);
+    };
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function updateVoiceUi() {
+    if (els.voiceInputBtn) {
+      els.voiceInputBtn.classList.toggle("listening", state.isListening);
+    }
+
+    if (els.speakReplyBtn) {
+      els.speakReplyBtn.classList.toggle("speaking", state.isSpeaking);
+    }
+
+    if (els.voiceStatusText) {
+      if (state.isListening) {
+        els.voiceStatusText.textContent = "Lytter nå...";
+      } else if (state.isSpeaking) {
+        els.voiceStatusText.textContent = "Leser opp svar...";
+      } else {
+        els.voiceStatusText.textContent = "Trykk og snakk";
+      }
     }
   }
 
@@ -424,6 +672,8 @@
     if (els.toolsOutput) els.toolsOutput.value = "";
     if (els.toolPrompt) els.toolPrompt.value = "";
 
+    resetTaskCards();
+    state.parsedTasks = [];
     state.lastReply = "";
     state.lastSummary = "";
     state.lastTasks = "";
@@ -489,6 +739,11 @@
       els.copyToolsBtn,
       els.refreshContextBtn,
       els.clearAllBtn,
+      els.clearTasksViewBtn,
+      els.voiceInputBtn,
+      els.speakReplyBtn,
+      els.speakReplyBtnTop,
+      ...els.taskActionBtns,
     ]
       .filter(Boolean)
       .forEach((btn) => {
