@@ -18,12 +18,7 @@
         --primary: #173b8f;
         --primary-2: #234db8;
         --primary-soft: #eef3ff;
-        --icon: #2647b8;
         --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-        --radius-xl: 16px;
-        --radius-lg: 12px;
-        --radius-md: 10px;
-        --radius-sm: 8px;
       }
 
       * {
@@ -36,11 +31,7 @@
         padding: 0;
         background: var(--bg);
         color: var(--text);
-        font-family:
-          "Segoe UI",
-          -apple-system,
-          BlinkMacSystemFont,
-          sans-serif;
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
       body {
@@ -145,7 +136,6 @@
       .tabs {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 0;
         border: 1px solid var(--border);
         border-radius: 10px;
         overflow: hidden;
@@ -271,10 +261,6 @@
         stroke: currentColor;
       }
 
-      .toolbar-icon:hover {
-        color: var(--primary);
-      }
-
       .grid-2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -382,10 +368,6 @@
         font-weight: 700;
         font-size: 14px;
       }
-
-      .muted {
-        color: var(--muted);
-      }
     </style>
   </head>
 
@@ -425,7 +407,6 @@
             <span id="statusText"></span>
           </div>
 
-          <!-- SVAR -->
           <section class="panel active" data-panel="reply">
             <div class="card">
               <h3 class="section-title">Velg svar type / tone</h3>
@@ -438,6 +419,15 @@
                   <option value="mer_salgsrettet">Mer salgsrettet</option>
                 </select>
               </div>
+            </div>
+
+            <div class="grid-2">
+              <button id="generateReplyBtn" class="btn primary" type="button">
+                Generer svar
+              </button>
+              <button id="insertReplyBtn" class="btn" type="button">
+                Sett inn i e-post
+              </button>
             </div>
 
             <div class="card">
@@ -477,63 +467,18 @@
               <h3 class="section-title">Endre svar</h3>
 
               <div class="grid-2">
-                <button class="btn prompt-action" data-action="Kortere" type="button">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M7 12h10M7 8h6M7 16h8" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  Kortere
-                </button>
-
-                <button class="btn prompt-action" data-action="Lengre" type="button">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M7 12h10M7 8h10M7 16h10" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  Lengre
-                </button>
-
-                <button class="btn prompt-action" data-action="Mer formell" type="button">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M12 3l8 4-8 4-8-4 8-4Z" stroke-width="1.8" stroke-linejoin="round"/>
-                    <path d="M6 10v4c0 2 2.7 4 6 4s6-2 6-4v-4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  Mer formell
-                </button>
-
-                <button class="btn prompt-action" data-action="Mer salgsrettet" type="button">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M7 7h10v10H7z" stroke-width="1.8" stroke-linejoin="round"/>
-                    <path d="M10 10h4M10 14h4" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  Mer salgsrettet
-                </button>
-
-                <button class="btn prompt-action" data-action="Mer uformell" type="button">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-width="1.8" stroke-linecap="round"/>
-                    <circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/>
-                    <circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/>
-                    <path d="M12 3c5 0 9 4 9 9s-4 9-9 9-9-4-9-9 4-9 9-9Z" stroke-width="1.8"/>
-                  </svg>
-                  Mer uformell
-                </button>
-
-                <button id="regenerateBtn" class="btn" type="button">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M20 12a8 8 0 0 1-14 5M4 12a8 8 0 0 1 14-5" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M4 18v-6h6M20 6v6h-6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  Lag ny versjon
-                </button>
+                <button class="btn prompt-action" data-action="Kortere" type="button">Kortere</button>
+                <button class="btn prompt-action" data-action="Lengre" type="button">Lengre</button>
+                <button class="btn prompt-action" data-action="Mer formell" type="button">Mer formell</button>
+                <button class="btn prompt-action" data-action="Mer salgsrettet" type="button">Mer salgsrettet</button>
+                <button class="btn prompt-action" data-action="Mer uformell" type="button">Mer uformell</button>
+                <button id="regenerateBtn" class="btn" type="button">Lag ny versjon</button>
               </div>
             </div>
 
             <div class="grid-2">
-              <button id="insertReplyBtn" class="btn primary" type="button">
-                Sett inn i e-post
-              </button>
-              <button id="copyReplyBtn" class="btn" type="button">
-                Kopier
-              </button>
+              <button id="copyReplyBtn" class="btn" type="button">Kopier</button>
+              <button id="refreshContextBtn" class="btn" type="button">Hent aktiv e-post</button>
             </div>
 
             <div class="footer-voice">
@@ -555,7 +500,6 @@
             </div>
           </section>
 
-          <!-- OPPSUMMER -->
           <section class="panel" data-panel="summary">
             <div class="card">
               <h3 class="section-title">Oppsummer tråden</h3>
@@ -566,20 +510,15 @@
 
             <div class="card">
               <h3 class="section-title">Oppsummering</h3>
-              <textarea
-                id="summaryOutput"
-                class="textarea small"
-                placeholder="Oppsummering vises her..."
-              ></textarea>
+              <textarea id="summaryOutput" class="textarea small" placeholder="Oppsummering vises her..."></textarea>
             </div>
 
             <div class="grid-2">
               <button id="copySummaryBtn" class="btn" type="button">Kopier</button>
-              <button id="refreshContextBtn" class="btn" type="button">Hent aktiv e-post</button>
+              <button id="clearAllBtn" class="btn" type="button">Tøm felter</button>
             </div>
           </section>
 
-          <!-- OPPGAVER -->
           <section class="panel" data-panel="tasks">
             <div class="card">
               <h3 class="section-title">Oppgaver og oppfølging</h3>
@@ -590,28 +529,19 @@
 
             <div class="card">
               <h3 class="section-title">Forslag</h3>
-              <textarea
-                id="tasksOutput"
-                class="textarea small"
-                placeholder="Oppgaver og oppfølging vises her..."
-              ></textarea>
+              <textarea id="tasksOutput" class="textarea small" placeholder="Oppgaver og oppfølging vises her..."></textarea>
             </div>
 
             <div class="grid-2">
               <button id="copyTasksBtn" class="btn" type="button">Kopier</button>
-              <button id="clearAllBtn" class="btn" type="button">Tøm felter</button>
+              <button id="clearAllBtnTasksGhost" class="btn" type="button" onclick="document.getElementById('tasksOutput').value=''">Tøm visning</button>
             </div>
           </section>
 
-          <!-- VERKTØY -->
           <section class="panel" data-panel="tools">
             <div class="card">
               <h3 class="section-title">Ny e-post / reklamasjon</h3>
-              <textarea
-                id="toolPrompt"
-                class="textarea small"
-                placeholder="Skriv kort hva du vil generere..."
-              ></textarea>
+              <textarea id="toolPrompt" class="textarea small" placeholder="Skriv kort hva du vil generere..."></textarea>
             </div>
 
             <div class="grid-2">
@@ -621,25 +551,17 @@
 
             <div class="card">
               <h3 class="section-title">Smart handlinger</h3>
-              <button id="suggestToolsBtn" class="btn full" type="button">
-                Analyser
-              </button>
+              <button id="suggestToolsBtn" class="btn full" type="button">Analyser</button>
             </div>
 
             <div class="card">
               <h3 class="section-title">Output</h3>
-              <textarea
-                id="toolsOutput"
-                class="textarea small"
-                placeholder="Resultat vises her..."
-              ></textarea>
+              <textarea id="toolsOutput" class="textarea small" placeholder="Resultat vises her..."></textarea>
             </div>
 
             <div class="grid-2">
               <button id="copyToolsBtn" class="btn" type="button">Kopier</button>
-              <button id="generateReplyBtn" class="btn primary" type="button">
-                Generer svar
-              </button>
+              <div></div>
             </div>
           </section>
         </div>
