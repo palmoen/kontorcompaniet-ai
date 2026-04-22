@@ -1,40 +1,704 @@
 <!DOCTYPE html>
 <html lang="no">
-<head>
-  <meta charset="UTF-8" />
-  <title>AI Svar</title>
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 16px;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KontorPilot AI</title>
+    <style>
+      :root {
+        --bg: #07111f;
+        --panel: #0d1b2d;
+        --panel-2: #10233b;
+        --panel-3: #132a45;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f3f7fb;
+        --muted: #9fb0c4;
+        --accent: #4f8cff;
+        --accent-hover: #6a9dff;
+        --accent-soft: rgba(79, 140, 255, 0.14);
+        --success: #1fb67a;
+        --danger: #ff6b6b;
+        --warning: #ffb547;
+        --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+        --radius-xl: 20px;
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --radius-sm: 10px;
+      }
 
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      width: 100%;
-      cursor: pointer;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    textarea {
-      width: 100%;
-      height: 200px;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top right, rgba(79, 140, 255, 0.18), transparent 28%),
+          linear-gradient(180deg, #08111d 0%, #0a1525 100%);
+        color: var(--text);
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
 
-  <h3>AI E-postassistent</h3>
+      body {
+        padding: 16px;
+      }
 
-  <button id="generate">Generer svar</button>
+      .app-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
 
-  <textarea id="output" placeholder="Svar kommer her..."></textarea>
+      .hero-card {
+        background: linear-gradient(180deg, rgba(18, 38, 62, 0.96) 0%, rgba(10, 24, 40, 0.96) 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
 
-  <button id="insert">Sett inn i e-post</button>
+      .hero-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
 
-  <script src="taskpane.js"></script>
+      .logo-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #4f8cff 0%, #7aa7ff 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 16px;
+        box-shadow: 0 10px 22px rgba(79, 140, 255, 0.28);
+        flex-shrink: 0;
+      }
 
-</body>
+      .hero-title-wrap {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 4px 0;
+        color: #b9c9db;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-title {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.15;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .hero-subtitle {
+        margin: 8px 0 0 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      .status-badge {
+        align-self: flex-start;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(31, 182, 122, 0.14);
+        color: #7de0b4;
+        border: 1px solid rgba(31, 182, 122, 0.18);
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .tabs-card,
+      .content-card {
+        background: linear-gradient(180deg, rgba(14, 28, 46, 0.96) 0%, rgba(10, 21, 37, 0.96) 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .tab-btn {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        border-radius: 12px;
+        padding: 12px 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .tab-btn:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+
+      .tab-btn.active {
+        background: var(--accent-soft);
+        color: #d9e7ff;
+        border-color: rgba(79, 140, 255, 0.28);
+        box-shadow: inset 0 0 0 1px rgba(79, 140, 255, 0.06);
+      }
+
+      .content-card {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .panel {
+        display: none;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .panel.active {
+        display: flex;
+      }
+
+      .card {
+        background: linear-gradient(180deg, rgba(17, 35, 58, 0.92) 0%, rgba(13, 28, 47, 0.92) 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 14px;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .card-kicker {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .field label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #d3deea;
+      }
+
+      .select,
+      .textarea,
+      .input {
+        width: 100%;
+        border: 1px solid var(--border);
+        background: rgba(5, 13, 24, 0.54);
+        color: var(--text);
+        border-radius: var(--radius-md);
+        padding: 12px 13px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .select:focus,
+      .textarea:focus,
+      .input:focus {
+        border-color: rgba(79, 140, 255, 0.55);
+        box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.12);
+      }
+
+      .textarea {
+        resize: vertical;
+        min-height: 150px;
+        line-height: 1.55;
+      }
+
+      .textarea.compact {
+        min-height: 108px;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .button-row.single {
+        grid-template-columns: 1fr;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip-btn,
+      .ghost-btn,
+      .primary-btn,
+      .secondary-btn {
+        appearance: none;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .chip-btn {
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.05);
+        color: #d7e3ef;
+      }
+
+      .chip-btn:hover {
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .primary-btn {
+        padding: 12px 14px;
+        background: linear-gradient(135deg, #4f8cff 0%, #6a9dff 100%);
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(79, 140, 255, 0.22);
+      }
+
+      .primary-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.03);
+      }
+
+      .secondary-btn {
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border-color: var(--border);
+        color: var(--text);
+      }
+
+      .secondary-btn:hover,
+      .ghost-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .ghost-btn {
+        padding: 10px 12px;
+        background: transparent;
+        border-color: var(--border);
+        color: var(--muted);
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .meta-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+      }
+
+      .meta-label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .meta-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .output {
+        min-height: 180px;
+        white-space: pre-wrap;
+      }
+
+      .placeholder {
+        color: var(--muted);
+      }
+
+      .status-line {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        min-height: 18px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status-line.show {
+        display: flex;
+      }
+
+      .status-line.loading {
+        color: #b8cdf8;
+      }
+
+      .status-line.error {
+        color: #ff9c9c;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: currentColor;
+        box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
+      }
+
+      .muted-text {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .tool-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .tool-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+      }
+
+      .tool-copy {
+        min-width: 0;
+      }
+
+      .tool-copy strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .tool-copy span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .footer-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      @media (max-width: 430px) {
+        body {
+          padding: 12px;
+        }
+
+        .tabs {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .button-row,
+        .footer-actions,
+        .meta-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-top {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .status-badge {
+          align-self: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <section class="hero-card">
+        <div class="hero-top">
+          <div class="logo-mark">KP</div>
+          <div class="hero-title-wrap">
+            <p class="eyebrow">Kontorcompaniet</p>
+            <h1 class="hero-title">KontorPilot AI</h1>
+            <p class="hero-subtitle">
+              Svar raskere, oppsummer tråder og få forslag til neste steg – direkte i Outlook.
+            </p>
+          </div>
+          <div class="status-badge">Outlook Add-in</div>
+        </div>
+      </section>
+
+      <section class="tabs-card">
+        <div class="tabs" id="tabs">
+          <button class="tab-btn active" data-tab="reply">Svar</button>
+          <button class="tab-btn" data-tab="summary">Oppsummer</button>
+          <button class="tab-btn" data-tab="tasks">Oppgaver</button>
+          <button class="tab-btn" data-tab="tools">Verktøy</button>
+        </div>
+      </section>
+
+      <section class="content-card">
+        <div id="statusLine" class="status-line">
+          <span class="status-dot"></span>
+          <span id="statusText"></span>
+        </div>
+
+        <section class="panel active" data-panel="reply">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Svarutkast</h2>
+                <div class="card-kicker">Generer og juster svar</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="toneSelect">Tone / svar-type</label>
+              <select id="toneSelect" class="select">
+                <option value="standard">Standard</option>
+                <option value="kort">Kort</option>
+                <option value="mer_formell">Mer formell</option>
+                <option value="mer_uformell">Mer uformell</option>
+                <option value="mer_salgsrettet">Mer salgsrettet</option>
+              </select>
+            </div>
+
+            <div class="button-row">
+              <button id="generateReplyBtn" class="primary-btn">Generer svar</button>
+              <button id="insertReplyBtn" class="secondary-btn">Sett inn i e-post</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Juster svar</h3>
+                <div class="card-kicker">Lag ny versjon med ett klikk</div>
+              </div>
+            </div>
+
+            <div class="chip-row">
+              <button class="chip-btn prompt-action" data-action="Kortere">Kortere</button>
+              <button class="chip-btn prompt-action" data-action="Lengre">Lengre</button>
+              <button class="chip-btn prompt-action" data-action="Mer formell">Mer formell</button>
+              <button class="chip-btn prompt-action" data-action="Mer uformell">Mer uformell</button>
+              <button class="chip-btn prompt-action" data-action="Mer salgsrettet">Mer salgsrettet</button>
+              <button id="regenerateBtn" class="chip-btn">Lag ny versjon</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Resultat</h3>
+                <div class="card-kicker">Rediger ved behov før innsetting</div>
+              </div>
+              <button id="copyReplyBtn" class="ghost-btn">Kopier</button>
+            </div>
+
+            <textarea
+              id="replyOutput"
+              class="textarea output"
+              placeholder="Svarutkast vises her..."
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="summary">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Oppsummer tråd</h2>
+                <div class="card-kicker">3–5 konkrete punkter</div>
+              </div>
+            </div>
+
+            <div class="button-row single">
+              <button id="generateSummaryBtn" class="primary-btn">Oppsummer</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Oppsummering</h3>
+                <div class="card-kicker">Hva saken gjelder, hva som er gjort, hva som mangler</div>
+              </div>
+              <button id="copySummaryBtn" class="ghost-btn">Kopier</button>
+            </div>
+
+            <textarea
+              id="summaryOutput"
+              class="textarea output compact"
+              placeholder="Oppsummering vises her..."
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="tasks">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Oppgaver og oppfølging</h2>
+                <div class="card-kicker">Forslag til neste steg</div>
+              </div>
+            </div>
+
+            <div class="button-row single">
+              <button id="generateTasksBtn" class="primary-btn">Foreslå oppgaver</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Forslag</h3>
+                <div class="card-kicker">Oppgaver, avtaler og oppfølging</div>
+              </div>
+              <button id="copyTasksBtn" class="ghost-btn">Kopier</button>
+            </div>
+
+            <textarea
+              id="tasksOutput"
+              class="textarea output compact"
+              placeholder="Oppgaver og oppfølging vises her..."
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="tools">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Verktøy</h2>
+                <div class="card-kicker">Klargjort for neste steg</div>
+              </div>
+            </div>
+
+            <div class="tool-list">
+              <div class="tool-item">
+                <div class="tool-copy">
+                  <strong>Ny e-post fra prompt</strong>
+                  <span>Skriv kort hva e-posten skal gjelde, og generer et ferdig utkast.</span>
+                </div>
+                <button id="generateNewEmailBtn" class="secondary-btn">Åpne</button>
+              </div>
+
+              <div class="tool-item">
+                <div class="tool-copy">
+                  <strong>Reklamasjon</strong>
+                  <span>Bygg leverandørklar e-post automatisk når tråden er en reklamasjon.</span>
+                </div>
+                <button id="generateComplaintBtn" class="secondary-btn">Åpne</button>
+              </div>
+
+              <div class="tool-item">
+                <div class="tool-copy">
+                  <strong>Smart handlinger</strong>
+                  <span>Flagg, pin og foreslå mappe basert på innholdet i tråden.</span>
+                </div>
+                <button id="suggestToolsBtn" class="secondary-btn">Analyser</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Prompt</h3>
+                <div class="card-kicker">Brukes til ny e-post eller reklamasjon</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="toolPrompt">Kort beskrivelse</label>
+              <textarea
+                id="toolPrompt"
+                class="textarea compact"
+                placeholder="Eks: Lag en kort e-post til kunde om levering fredag og be om bekreftelse."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Output</h3>
+                <div class="card-kicker">Resultat fra valgt verktøy</div>
+              </div>
+              <button id="copyToolsBtn" class="ghost-btn">Kopier</button>
+            </div>
+
+            <textarea
+              id="toolsOutput"
+              class="textarea output compact"
+              placeholder="Resultat vises her..."
+            ></textarea>
+          </div>
+        </section>
+
+        <div class="footer-actions">
+          <button id="refreshContextBtn" class="secondary-btn">Hent aktiv e-post</button>
+          <button id="clearAllBtn" class="ghost-btn">Tøm felter</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="/addin/taskpane.js"></script>
+  </body>
 </html>
