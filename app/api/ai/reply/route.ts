@@ -11,8 +11,11 @@ export async function POST(req: NextRequest) {
   try {
     const { subject, body, from } = await req.json();
 
-    if (!body) {
-      return NextResponse.json({ reply: "Ingen e-postinnhold funnet" });
+    if (!body || !String(body).trim()) {
+      return NextResponse.json(
+        { reply: "Ingen e-postinnhold funnet." },
+        { status: 400 }
+      );
     }
 
     const prompt = `
@@ -20,8 +23,8 @@ Du er en profesjonell rådgiver i Kontorcompaniet.
 
 Skriv et kort svar på e-posten under.
 
-Fra: ${from}
-Emne: ${subject}
+Fra: ${from || ""}
+Emne: ${subject || ""}
 Innhold:
 ${body}
 
@@ -46,17 +49,27 @@ KRAV:
           content: prompt,
         },
       ],
-      temperature: 0.7,
     });
 
     const reply =
-      completion.choices?.[0]?.message?.content ||
-      "Kunne ikke generere svar";
+      completion.choices?.[0]?.message?.content?.trim() ||
+      "Kunne ikke generere svar.";
 
     return NextResponse.json({ reply });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("AI reply error:", error);
+
     return NextResponse.json(
-      { reply: "Feil ved generering av svar" },
+      {
+        error:
+          error?.message ||
+          error?.response?.data?.error?.message ||
+          "Ukjent serverfeil",
+        reply:
+          error?.message ||
+          error?.response?.data?.error?.message ||
+          "Feil ved generering av svar.",
+      },
       { status: 500 }
     );
   }

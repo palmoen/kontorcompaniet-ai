@@ -13,7 +13,10 @@ async function getEmailData() {
       resolve({
         subject: item.subject || "",
         from: item.from?.emailAddress || "",
-        body: bodyResult.status === Office.AsyncResultStatus.Succeeded ? bodyResult.value : "",
+        body:
+          bodyResult.status === Office.AsyncResultStatus.Succeeded
+            ? bodyResult.value || ""
+            : "",
       });
     });
   });
@@ -34,18 +37,26 @@ async function generateReply() {
       body: JSON.stringify(email),
     });
 
-    const data = await res.json();
-    output.value = data.reply || "Ingen svar mottatt";
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      output.value =
+        data?.reply ||
+        data?.error ||
+        `Feil fra server (${res.status})`;
+      return;
+    }
+
+    output.value = data?.reply || "Ingen svar mottatt";
   } catch (error) {
-    output.value = "Feil ved henting av AI-svar";
+    output.value = `Feil ved kall mot API: ${error?.message || "Ukjent feil"}`;
   }
 }
 
 function insertReply() {
   const text = document.getElementById("output").value;
 
-  Office.context.mailbox.item.body.setSelectedDataAsync(
-    text,
-    { coercionType: Office.CoercionType.Text }
-  );
+  Office.context.mailbox.item.body.setSelectedDataAsync(text, {
+    coercionType: Office.CoercionType.Text,
+  });
 }
