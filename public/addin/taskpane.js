@@ -172,12 +172,19 @@
 
   function buildHeaderContext(item) {
     const subject = item.subject || "";
-    const from =
-      item.from?.displayName || item.from?.emailAddress || "";
+    const from = item.from?.displayName || item.from?.emailAddress || "";
     const to = Array.isArray(item.to)
-      ? item.to.map((r) => r.displayName || r.emailAddress).filter(Boolean).join(", ")
+      ? item.to
+          .map((recipient) => recipient.displayName || recipient.emailAddress)
+          .filter(Boolean)
+          .join(", ")
       : "";
-    return [`Emne: ${subject}`, from ? `Fra: ${from}` : "", to ? `Til: ${to}` : ""]
+
+    return [
+      `Emne: ${subject}`,
+      from ? `Fra: ${from}` : "",
+      to ? `Til: ${to}` : "",
+    ]
       .filter(Boolean)
       .join("\n");
   }
@@ -194,6 +201,7 @@
           resolve((result.value || "").trim());
           return;
         }
+
         resolve("");
       });
     });
@@ -211,12 +219,15 @@
         instruction: adjustment
           ? `Juster eksisterende svar med følgende føring: ${adjustment}`
           : "Generer et kort, profesjonelt og uformelt norsk svarutkast.",
-        previousDraft: adjustment ? (els.replyOutput.value || "") : "",
+        previousDraft: adjustment ? els.replyOutput.value || "" : "",
       });
 
       const text = extractText(response);
       state.lastReply = text;
-      els.replyOutput.value = text;
+      if (els.replyOutput) {
+        els.replyOutput.value = text;
+      }
+
       setStatus("Svar klart", "loading", 1600);
     } catch (error) {
       setStatus("Kunne ikke generere svar", "error", 2600);
@@ -240,7 +251,10 @@
 
       const text = extractText(response);
       state.lastSummary = text;
-      els.summaryOutput.value = text;
+      if (els.summaryOutput) {
+        els.summaryOutput.value = text;
+      }
+
       setStatus("Oppsummering klar", "loading", 1600);
     } catch (error) {
       setStatus("Kunne ikke oppsummere", "error", 2600);
@@ -264,7 +278,10 @@
 
       const text = extractText(response);
       state.lastTasks = text;
-      els.tasksOutput.value = text;
+      if (els.tasksOutput) {
+        els.tasksOutput.value = text;
+      }
+
       setStatus("Oppgaver klare", "loading", 1600);
     } catch (error) {
       setStatus("Kunne ikke lage oppgaver", "error", 2600);
@@ -276,7 +293,10 @@
   async function generateToolIntent(intent) {
     try {
       const promptText = (els.toolPrompt?.value || "").trim();
-      const combinedContext = [state.currentBodyText, promptText ? `Brukerprompt:\n${promptText}` : ""]
+      const combinedContext = [
+        state.currentBodyText,
+        promptText ? `Brukerprompt:\n${promptText}` : "",
+      ]
         .filter(Boolean)
         .join("\n\n");
 
@@ -308,7 +328,9 @@
 
       const text = extractText(response);
       state.lastTools = text;
-      els.toolsOutput.value = text;
+      if (els.toolsOutput) {
+        els.toolsOutput.value = text;
+      }
 
       const doneText =
         intent === "new_email"
@@ -364,13 +386,18 @@
         return;
       }
 
-      item.body.setSelectedDataAsync(text, { coercionType: Office.CoercionType.Text }, (result) => {
-        if (result.status === Office.AsyncResultStatus.Succeeded) {
-          setStatus("Svar satt inn i e-post", "loading", 1800);
-          return;
+      item.body.setSelectedDataAsync(
+        text,
+        { coercionType: Office.CoercionType.Text },
+        (result) => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            setStatus("Svar satt inn i e-post", "loading", 1800);
+            return;
+          }
+
+          setStatus("Kunne ikke sette inn svar", "error", 2400);
         }
-        setStatus("Kunne ikke sette inn svar", "error", 2400);
-      });
+      );
     } catch (error) {
       setStatus("Kunne ikke sette inn svar", "error", 2400);
     }
@@ -396,6 +423,7 @@
     if (els.tasksOutput) els.tasksOutput.value = "";
     if (els.toolsOutput) els.toolsOutput.value = "";
     if (els.toolPrompt) els.toolPrompt.value = "";
+
     state.lastReply = "";
     state.lastSummary = "";
     state.lastTasks = "";
@@ -416,7 +444,9 @@
     if (isLoading) {
       els.statusLine?.classList.add("show", "loading");
       els.statusLine?.classList.remove("error");
-      if (els.statusText) els.statusText.textContent = text || "Jobber...";
+      if (els.statusText) {
+        els.statusText.textContent = text || "Jobber...";
+      }
       toggleButtons(true);
       return;
     }
