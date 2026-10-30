@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import {
+  FixedWindowRateLimiter,
+  MAX_BODY_CHARS,
+  clientKey,
+  isAllowedOrigin,
+} from "@/lib/requestGuard";
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Opprettes først ved første kall — ellers feiler `next build` (og hele ruten) når
+// OPENAI_API_KEY mangler, i stedet for å svare 503 under.
+let openai: OpenAI | undefined;
+function getOpenAI(): OpenAI {
+  openai ??= new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+}
+
+/** 20 AI-kall per minutt per klient-IP (per serverinstans, se lib/requestGuard.ts). */
+const rateLimiter = new FixedWindowRateLimiter(20, 60_000);
 
 type Intent =
   | "reply"
@@ -193,8 +206,40 @@ ${context.trim()}${draftSection}${instructionSection}
 }
 
 export async function POST(req: NextRequest) {
+  if (!isAllowedOrigin(req.headers.get("origin"))) {
+    return NextResponse.json({ error: "Ikke tillatt." }, { status: 403 });
+  }
+
+  if (!rateLimiter.take(clientKey(req.headers))) {
+    return NextResponse.json(
+      { error: "For mange forespørsler. Prøv igjen om litt." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("AI reply: OPENAI_API_KEY er ikke satt.");
+    return NextResponse.json(
+      { error: "Tjenesten er ikke konfigurert.", reply: "Feil ved generering av svar." },
+      { status: 503 }
+    );
+  }
+
+  const rawBody = await req.text();
+  if (rawBody.length > MAX_BODY_CHARS) {
+    return NextResponse.json(
+      { error: "E-posten er for lang.", reply: "E-posten er for lang til å behandles." },
+      { status: 413 }
+    );
+  }
+
   try {
-    const payload = await req.json();
+    let payload: Record<string, unknown>;
+    try {
+      payload = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch {
+      return NextResponse.json({ reply: "Ugyldig forespørsel." }, { status: 400 });
+    }
 
     const legacyBody = String(payload?.body || "").trim();
     const context = String(payload?.context || "").trim();
@@ -220,7 +265,7 @@ export async function POST(req: NextRequest) {
       previousDraft,
     });
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-5-mini",
       messages: [
         {
@@ -245,19 +290,15 @@ export async function POST(req: NextRequest) {
       intent,
       tone,
     });
-  } catch (error: any) {
+  } catch (error) {
+    // Logg detaljene på serveren, men send aldri interne feilmeldinger (som kan
+    // inneholde detaljer om OpenAI-kontoen/oppsettet) tilbake til klienten.
     console.error("AI reply error:", error);
 
     return NextResponse.json(
       {
-        error:
-          error?.message ||
-          error?.response?.data?.error?.message ||
-          "Ukjent serverfeil",
-        reply:
-          error?.message ||
-          error?.response?.data?.error?.message ||
-          "Feil ved generering av svar.",
+        error: "Ukjent serverfeil",
+        reply: "Feil ved generering av svar.",
       },
       { status: 500 }
     );
