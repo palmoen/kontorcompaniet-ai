@@ -604,6 +604,10 @@
       body: JSON.stringify(payload),
     });
 
+    if (response.status === 410) {
+      throw new Error("K-Pilot er faset ut. Bruk Donna i stedet.");
+    }
+
     if (!response.ok) {
       throw new Error(`API feilet med status ${response.status}`);
     }

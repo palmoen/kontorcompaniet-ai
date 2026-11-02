@@ -1,9 +1,10 @@
 name: CI
 
+# Kjører ved hver push til hvilken som helst branch (ingen PR nødvendig), og kan
+# startes manuelt under Actions-fanen på GitHub.
 on:
   push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
